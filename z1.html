@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="myCanvas" width="500" height="200" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML canvas tag.</canvas>
+
+<script>
+    var counter = 0
+    var colors = ['blue', 'green'];
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    ctx.beginPath();
+    ctx.arc(195,100,80,0,2*Math.PI);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+    ctx.stroke();
+
+    var a = setInterval(function() {
+        ctx.fillStyle = colors[counter++%2];
+        ctx.fill();
+    }, 1000);
+</script> 
+
+</body>
+</html>

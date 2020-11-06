@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <canvas id="myCanvas" width="1024" height="768" style="border:1px solid #d3d3d3;">
+        Your browser does not support the HTML canvas tag.</canvas>
+
+    <script>
+        function drawBox(x, y, w, h, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.rect(x, y - h, w, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBall(x, y, size, noidea, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.arc(x, y, size, noidea, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawScore(score, x, y) {
+            ctx.beginPath();
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "left";
+            ctx.fillText("Score: " + score.toString(), x, y);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function handleClick(e) {
+
+            var code = e.keyCode;
+            switch (code) {
+                case 37:
+                    main_platform.x -= 20;
+                    break; //Left key
+                case 39:
+                    main_platform.x += 20;
+                    break; //Right key
+                case 32:
+                    handleShoot();
+                    break; //Right key
+                default:
+            }
+
+        }
+
+        function handleShoot() {
+            ball = {
+                x: main_platform.x + main_platform.w / 2,
+                y: main_platform.y - main_platform.h - 20,
+                size: 20,
+                noidea: 0,
+                color: "green"
+            }
+
+            balls.push(ball)
+        }
+
+        function moveBalls() {
+            for (const ball of balls) {
+                ball.y -= 10;
+            }
+        }
+
+        function addTargets() {
+            var random = Math.floor(Math.random() * 30)
+
+            if (random != 0) return; // 1/10 szansy ze sie uda pojsc dalej
+
+            var newX = Math.floor(Math.random() * 1000) + 10
+            var newY = Math.floor(Math.random() * 400) + 10
+            var newSize = Math.floor(Math.random() * 20) + 30
+
+            ball = {
+                x: newX,
+                y: newY,
+                size: newSize,
+                noidea: 0,
+                color: "red"
+            }
+
+            targets.push(ball)
+
+        }
+
+        function clearInvisibleObjects() {
+            for (var i = balls.length - 1; i >= 0; i--) {
+                var ball = balls[i]
+                if (ball.x + ball.size < 0 || ball.x - ball.size > 1024) {
+                    balls.splice(i, 1);
+                } else if (ball.y + ball.size < 0 || ball.y - ball.size > 1024) {
+                    balls.splice(i, 1);
+                }
+            }
+        }
+
+        function drawAnimation() {
+            moveBalls()
+            addTargets()
+
+            handleCollisions()
+
+            clearInvisibleObjects()
+
+            ctx.clearRect(0, 0, 1024, 768);
+
+
+            drawScore(score, 10, 760)
+
+            drawBox(main_platform.x, main_platform.y, main_platform.w, main_platform.h, main_platform.color);
+            for (const ball of balls) {
+                drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
+            }
+
+            for (const target of targets) {
+                drawBall(target.x, target.y, target.size, target.noidea, target.color)
+            }
+        }
+
+        function isColliding(ball, target) {
+            var xd = target.x - ball.x;
+            var yd = target.y - ball.y;
+
+            var sumRadius = target.size + ball.size;
+            var sqrRadius = sumRadius * sumRadius;
+
+            var distSqr = (xd * xd) + (yd * yd);
+
+            return distSqr <= sqrRadius;
+        }
+
+        function handleCollisions() {
+
+            for (ball of balls) {
+                for (target of targets) {
+                    if (isColliding(ball, target)) {
+                        targetIndex = targets.indexOf(target)
+                        ballIndex = balls.indexOf(ball)
+                        targets.splice(targetIndex, 1)
+                        balls.splice(ballIndex, 1)
+                        score += 1
+                        break;
+                    }
+                }
+
+            }
+        }
+
+        function checkCollision(element1, element2) {
+            if (
+                (element1.x + element1.w) > (element2.x - element2.w) &&
+                (element1.y - element1.h) > (element2.y - element2.h)
+            ) {
+                return true;
+            }
+
+            return false;
+        }
+
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        window.addEventListener('keydown', handleClick, false);
+
+        var balls = [];
+        var targets = [];
+        var score = 0;
+
+        var main_platform = {
+            x: 300,
+            y: 730,
+            w: 250,
+            h: 20,
+            color: "black"
+        };
+
+        var interval = null
+        interval = setInterval(drawAnimation, 40);
+    </script>
+
+</body>
+
+</html>

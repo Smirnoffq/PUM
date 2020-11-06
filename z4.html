@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <canvas id="myCanvas" width="1024" height="768" style="border:1px solid #d3d3d3;">
+        Your browser does not support the HTML canvas tag.</canvas>
+
+    <script>
+        function drawBox(x, y, w, h, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.rect(x, y - h, w, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBall(x, y, size, noidea, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.arc(x, y, size, noidea, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawAnimation() {
+
+            if (checkCollisions()) {
+                ball.x -= 10;
+            } else {
+                ball.x -= 10;
+                ball.y += 20;
+            }
+
+            if (ball.y > 768 || ball.x < 0) {
+                clearInterval(interval)
+            }
+
+            ctx.clearRect(0, 0, 1024, 768);
+
+            for (const a of boxes) {
+                drawBox(a.x, a.y, a.w, a.h, a.color);
+            }
+            drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
+        }
+
+        function checkCollisions() {
+
+            for (const box of boxes) {
+                if (
+                    (ball.x + ball.size) > (box.x - box.w) &&
+                    (ball.y - ball.size) > (box.y - box.h)
+                ) {
+                    console.log("here")
+                    return true;
+
+                }
+            }
+
+            return false;
+        }
+
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        var boxes = [{
+                x: 100,
+                y: 768,
+                w: 150,
+                h: 100,
+                color: "brown"
+            },
+            {
+                x: 250,
+                y: 768,
+                w: 150,
+                h: 200,
+                color: "brown"
+            },
+            {
+                x: 400,
+                y: 768,
+                w: 150,
+                h: 300,
+                color: "brown"
+            },
+            {
+                x: 550,
+                y: 768,
+                w: 150,
+                h: 400,
+                color: "brown"
+            },
+            {
+                x: 700,
+                y: 768,
+                w: 150,
+                h: 500,
+                color: "brown"
+            },
+            {
+                x: 850,
+                y: 768,
+                w: 150,
+                h: 600,
+                color: "white"
+            }
+        ];
+        var ball = {
+            x: 850,
+            y: 219,
+            size: 50,
+            noidea: 0,
+            color: "green"
+        }
+
+        timeout = 200
+        for (const a of boxes) {
+            setTimeout(function () {
+                drawBox(a.x, a.y, a.w, a.h, a.color);
+            }, timeout);
+            timeout += 200
+        }
+        setTimeout(function () {
+            drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
+        }, timeout);
+
+        var interval = null
+
+        setTimeout(function () {
+            interval = setInterval(drawAnimation, 40);
+        }, timeout)
+    </script>
+
+</body>
+
+</html>

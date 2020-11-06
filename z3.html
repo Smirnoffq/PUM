@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <canvas id="myCanvas" width="500" height="250" style="border:1px solid #d3d3d3;">
+        Your browser does not support the HTML canvas tag.</canvas>
+
+    <script>
+        function drawlinear() {
+            ctx.clearRect(0, 0, 500, 250);
+            var grad = ctx.createLinearGradient(x, y, x1, y1);
+            grad.addColorStop(0, 'blue');
+            grad.addColorStop(1, 'green');
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(95, height, 40, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            
+            if (growing) {
+                x += 15;
+                x1 -= 15;
+            } else {
+                x -= 15;
+                x1 += 15;
+            }
+
+            if (x1 <= 0) {
+                growing = false
+            } else if (x1 >= 190) {
+                growing = true
+            }
+
+            if (falling) {
+                height += 1
+            } else {
+                height -= 1
+            }
+            if (height >= 210) {
+                falling = false
+            } else if (height <= 180) {
+                falling = true
+            }
+        }
+
+        var falling = true
+        var growing = true;
+        var height = 180;
+        var x=0;
+        var y=0;
+        var x1=190;
+        var y1=0;
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+
+        var a = setInterval(drawlinear, 200);
+    </script>
+
+</body>
+
+</html>

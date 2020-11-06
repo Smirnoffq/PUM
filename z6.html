@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <canvas id="myCanvas" width="800" height="600" style="border:1px solid #d3d3d3;">
+        Your browser does not support the HTML canvas tag.</canvas>
+
+    <script>
+        function drawBox(x, y, w, h, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.rect(x, y - h, w, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBall(x, y, size, noidea, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.arc(x, y, size, noidea, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawScore(score, x, y) {
+            ctx.beginPath();
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "left";
+            ctx.fillText("Score: " + score.toString(), x, y);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawCar(car) {
+            for (el of car) {
+                drawBox(el.x, el.y, el.w, el.h, el.color)
+            }
+        }
+
+        function drawRoad(road) {
+            for (const [key, value] of Object.entries(road)) {
+                for (el of value) {
+                    drawBox(el.x, el.y, el.w, el.h, el.color)
+                }
+            }
+        }
+
+        function moveCar(car, xChange, yChange) {
+            for (el of car) {
+                el.x += xChange;
+                el.y += yChange;
+            }
+        }
+
+        function drawRoadblocks(roadblocks) {
+            for (el of roadblocks) {
+                drawBox(el.x, el.y, el.w, el.h, el.color)
+            }
+        }
+
+        function drawBonuses(bonuses) {
+            for (el of bonuses) {
+                drawBox(el.x, el.y, el.w, el.h, el.color)
+            }
+        }
+
+        function handleClick(e) {
+
+            var code = e.keyCode;
+            switch (code) {
+                case 37:
+                    moveCar(car, -20, 0);
+                    break; //Left key
+                case 39:
+                    moveCar(car, 20, 0);
+                    break; //Right key
+                case 38:
+                    moveCar(car, 0, -20);
+                    break; //up key
+                case 40:
+                    moveCar(car, 0, 20);
+                    break; //down key
+                case 32:
+                    
+                    break; //space
+                default:
+            }
+
+        }
+
+        function moveLines() {
+            for (i in road["middleLines"]) {
+                line = road["middleLines"][i]
+                line.y += 10;
+
+                if (line.y >= 600) {
+                    line.y = -100
+                }
+            }
+
+            for (i in road["sideLines"]) {
+                line = road["sideLines"][i]
+                line.y += 10;
+
+                if (line.y >= 700) {
+                    line.y = -100
+                }
+            }
+        }
+
+        function moveRoadblocks() {
+            for (b of roadblocks) {
+                b.y += 5;
+
+                if (b.y >= 700) {
+                    index = roadblocks.indexOf(b);
+                    if (index > -1) {
+                        roadblocks.splice(index, 1);
+                    }
+                }
+            }
+        }
+
+        function moveBonuses() {
+            for (b of bonuses) {
+                b.y += 5;
+
+                if (b.y >= 700) {
+                    index = bonuses.indexOf(b);
+                    if (index > -1) {
+                        bonuses.splice(index, 1);
+                    }
+                }
+            }
+        }
+
+        function addRoadblock() {
+            var random = Math.floor(Math.random() * 100)
+
+            if (random != 0) return; // 1/10 szansy ze sie uda pojsc dalej
+
+            var newX = Math.floor(Math.random() * 500) + 150
+            var newY = -100
+            var newW = 130
+            var newH = 50
+
+            block = {
+                x: newX,
+                y: newY,
+                w: newW,
+                h: newH,
+                color: "brown"
+            }
+
+            roadblocks.push(block)
+        }
+
+        function addBonus() {
+            var random = Math.floor(Math.random() * 100)
+
+            if (random != 0) return; // 1/10 szansy ze sie uda pojsc dalej
+
+            var newX = Math.floor(Math.random() * 500) + 150
+            var newY = -100
+            var newW = 50
+            var newH = 50
+
+            block = {
+                x: newX,
+                y: newY,
+                w: newW,
+                h: newH,
+                color: "yellow"
+            }
+
+            bonuses.push(block)
+        }
+
+        function drawGameOver() {
+            drawBox(0,600,800,600, "black")
+
+            ctx.beginPath();
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "left";
+            ctx.fillText("Game over", 300, 300);
+            ctx.fillText("Your score: " + score, 290, 340);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawAnimation() {
+            if (game_over == true) {
+                drawGameOver()
+                return;
+            }
+
+
+            moveLines()
+            moveRoadblocks()
+            moveBonuses()
+
+            addRoadblock()
+            addBonus()
+
+            handleCollisions()
+
+
+            ctx.clearRect(0, 0, 800, 600);
+
+            drawRoad(road)
+            drawRoadblocks(roadblocks)
+            drawBonuses(bonuses)
+            drawCar(car)
+            drawScore(score, 10, 30)
+        }
+
+        function isColliding(rect1, rect2) {
+            return (rect1.x < rect2.x + rect2.w &&
+                    rect1.x + rect1.w > rect2.x &&
+                    rect1.y < rect2.y + rect2.h &&
+                    rect1.y + rect1.h > rect2.y)
+        }
+
+        function handleCollisions() {
+            for (part of car) {
+                for (target of roadblocks) {
+                    if (isColliding(part, target)) {
+                        game_over = true;
+                        break;
+                    }
+                }
+
+                for (bonus of bonuses) {
+                    if (isColliding(part, bonus)) {
+                        bonusIndex = bonuses.indexOf(bonus)
+                        bonuses.splice(bonusIndex, 1)
+                        score += 10
+                        break;
+                    }
+                }
+            }
+        }
+
+        function start_game() {
+            game_over = false;
+            car = [
+                {x: 300, y: 400, w: 50, h:100, color: "blue"},
+                {x: 285, y: 340, w: 15, h:25, color: "black"},
+                {x: 285, y: 390, w: 15, h:25, color: "black"},
+                {x: 350, y: 340, w: 15, h:25, color: "black"},
+                {x: 350, y: 390, w: 15, h:25, color: "black"},
+            ];
+            road = {
+                bg: [
+                    {x: 150, y: 600, w: 500, h: 600, color: "gray"},
+                    {x: 0, y: 600, w: 125, h: 600, color: "lightgreen"},
+                    {x: 675, y: 600, w: 125, h: 600, color: "lightgreen"}
+                ],
+                middleLines: [
+                    {x: 385, y: -50, w: 25, h: 50, color: "white"},
+                    {x: 385, y: 50, w: 25, h: 50, color: "white"},
+                    {x: 385, y: 150, w: 25, h: 50, color: "white"},
+                    {x: 385, y: 250, w: 25, h: 50, color: "white"},
+                    {x: 385, y: 350, w: 25, h: 50, color: "white"},
+                    {x: 385, y: 450, w: 25, h: 50, color: "white"},
+                    {x: 385, y: 550, w: 25, h: 50, color: "white"}
+                ],
+                sideLines: [
+                    {x: 125, y: 000, w: 25, h: 100, color: "green"},
+                    {x: 125, y: -100, w: 25, h: 100, color: "red"},
+                    {x: 125, y: 100, w: 25, h: 100, color: "red"},
+                    {x: 125, y: 200, w: 25, h: 100, color: "green"},
+                    {x: 125, y: 300, w: 25, h: 100, color: "red"},
+                    {x: 125, y: 400, w: 25, h: 100, color: "green"},
+                    {x: 125, y: 500, w: 25, h: 100, color: "red"},
+                    {x: 125, y: 600, w: 25, h: 100, color: "green"},
+                    {x: 650, y: 000, w: 25, h: 100, color: "green"},
+                    {x: 650, y: -100, w: 25, h: 100, color: "red"},
+                    {x: 650, y: 100, w: 25, h: 100, color: "red"},
+                    {x: 650, y: 200, w: 25, h: 100, color: "green"},
+                    {x: 650, y: 300, w: 25, h: 100, color: "red"},
+                    {x: 650, y: 400, w: 25, h: 100, color: "green"},
+                    {x: 650, y: 500, w: 25, h: 100, color: "red"},
+                    {x: 650, y: 600, w: 25, h: 100, color: "green"},
+                ]
+            };
+
+            roadblocks = []
+            bonuses = []
+            score = 0;
+        }
+
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        window.addEventListener('keydown', handleClick, false);
+
+        var game_over = false;
+        var car = [];
+        var road = {
+            bg: [],
+            middleLines: [],
+            sideLines: []
+        };
+        var roadblocks = []
+        var bonuses = []
+        var score = 0;
+
+        start_game();
+
+        var interval = null
+        interval = setInterval(drawAnimation, 20);
+    </script>
+
+</body>
+
+</html>
