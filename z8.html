@@ -274,24 +274,21 @@
 
         function randomTurning() {
             if (turning != null) {
-                if (turning == "left") {
+
+                if (turning == "left" && leftSideLineX > 50) {
                     leftSideLineX -= 5
                     rightSideLineX -= 5
-                } else {
+                } else if (turning == "right" && rightSideLineX < 750) {
                     leftSideLineX += 5
                     rightSideLineX += 5
-                }
-
-                if (rightSideLineX > 750) {
-                    turning = null
-                } else if (leftSideLineX < 50) {
+                } else {
                     turning = null
                 }
 
                 return;
             }
 
-            var random = Math.floor(Math.random() * 60)
+            var random = Math.floor(Math.random() * 25)
 
             if (random == 0) {
                 turning = "left"
@@ -313,8 +310,8 @@
             moveRoadblocks()
             moveBonuses()
 
-            // addRoadblock()
-            // addBonus()
+            addRoadblock()
+            addBonus()
 
             handleCollisions()
 
