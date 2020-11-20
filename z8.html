@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width">
 
     <style>
         button {
@@ -143,6 +142,7 @@
 
                 if (line.y >= 600) {
                     line.y = -100
+                    line.x = leftSideLineX + 260
                 }
             }
 
@@ -152,6 +152,28 @@
 
                 if (line.y >= 700) {
                     line.y = -100
+                    
+                    if (line.side == "left") {
+                        line.x = leftSideLineX
+                    } else {
+                        line.x = rightSideLineX
+                    }
+                }
+            }
+        }
+
+        function moveRoad() {
+            for (i in road["bg"]) {
+                line = road["bg"][i]
+                line.y += speed;
+
+                if (line.y >= 700) {
+                    line.y = -100
+
+                    if (line.color != "lightgreen") {
+                        line.x = leftSideLineX + 25
+                    }
+                    
                 }
             }
         }
@@ -166,7 +188,7 @@
                         roadblocks.splice(index, 1);
                     }
                 }
-            }
+            }            
         }
 
         function moveBonuses() {
@@ -250,19 +272,49 @@
             ctx.closePath();
         }
 
+        function randomTurning() {
+            if (turning != null) {
+                if (turning == "left") {
+                    leftSideLineX -= 5
+                    rightSideLineX -= 5
+                } else {
+                    leftSideLineX += 5
+                    rightSideLineX += 5
+                }
+
+                if (rightSideLineX > 750) {
+                    turning = null
+                } else if (leftSideLineX < 50) {
+                    turning = null
+                }
+
+                return;
+            }
+
+            var random = Math.floor(Math.random() * 60)
+
+            if (random == 0) {
+                turning = "left"
+            } else if (random == 1) {
+                turning = "right"
+            }
+        }
+
         function drawAnimation() {
             if (game_over == true) {
                 drawGameOver()
                 return;
             }
 
+            randomTurning()
             moveBalls()
             moveLines()
+            moveRoad()
             moveRoadblocks()
             moveBonuses()
 
-            addRoadblock()
-            addBonus()
+            // addRoadblock()
+            // addBonus()
 
             handleCollisions()
 
@@ -333,9 +385,26 @@
             ];
             road = {
                 bg: [
-                    {x: 150, y: 600, w: 500, h: 600, color: "gray"},
-                    {x: 0, y: 600, w: 125, h: 600, color: "lightgreen"},
-                    {x: 675, y: 600, w: 125, h: 600, color: "lightgreen"}
+                    {x: 0, y: 000, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: -100, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: 100, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: 200, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: 300, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: 400, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: 500, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 0, y: 600, w: 800, h: 100, color: "lightgreen", side:"middle"},
+                    {x: 150, y: 000, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: -100, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: 100, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: 200, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: 300, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: 400, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: 500, w: 500, h: 100, color: "gray", side:"middle"},
+                    {x: 150, y: 600, w: 500, h: 100, color: "gray", side:"middle"},
+
+                    // {x: 150, y: 600, w: 500, h: 600, color: "gray"},
+                    // {x: 0, y: 600, w: 800, h: 600, color: "lightgreen", side: "left"},
+                    // {x: 675, y: 600, w: 125, h: 600, color: "lightgreen", side: "right"}
                 ],
                 middleLines: [
                     {x: 385, y: -50, w: 25, h: 50, color: "white"},
@@ -347,22 +416,22 @@
                     {x: 385, y: 550, w: 25, h: 50, color: "white"}
                 ],
                 sideLines: [
-                    {x: 125, y: 000, w: 25, h: 100, color: "green"},
-                    {x: 125, y: -100, w: 25, h: 100, color: "red"},
-                    {x: 125, y: 100, w: 25, h: 100, color: "red"},
-                    {x: 125, y: 200, w: 25, h: 100, color: "green"},
-                    {x: 125, y: 300, w: 25, h: 100, color: "red"},
-                    {x: 125, y: 400, w: 25, h: 100, color: "green"},
-                    {x: 125, y: 500, w: 25, h: 100, color: "red"},
-                    {x: 125, y: 600, w: 25, h: 100, color: "green"},
-                    {x: 650, y: 000, w: 25, h: 100, color: "green"},
-                    {x: 650, y: -100, w: 25, h: 100, color: "red"},
-                    {x: 650, y: 100, w: 25, h: 100, color: "red"},
-                    {x: 650, y: 200, w: 25, h: 100, color: "green"},
-                    {x: 650, y: 300, w: 25, h: 100, color: "red"},
-                    {x: 650, y: 400, w: 25, h: 100, color: "green"},
-                    {x: 650, y: 500, w: 25, h: 100, color: "red"},
-                    {x: 650, y: 600, w: 25, h: 100, color: "green"},
+                    {x: 125, y: 000, w: 25, h: 100, color: "green", side: "left"},
+                    {x: 125, y: -100, w: 25, h: 100, color: "red", side: "left"},
+                    {x: 125, y: 100, w: 25, h: 100, color: "red", side: "left"},
+                    {x: 125, y: 200, w: 25, h: 100, color: "green", side: "left"},
+                    {x: 125, y: 300, w: 25, h: 100, color: "red", side: "left"},
+                    {x: 125, y: 400, w: 25, h: 100, color: "green", side: "left"},
+                    {x: 125, y: 500, w: 25, h: 100, color: "red", side: "left"},
+                    {x: 125, y: 600, w: 25, h: 100, color: "green", side: "left"},
+                    {x: 650, y: 000, w: 25, h: 100, color: "green", side: "right"},
+                    {x: 650, y: -100, w: 25, h: 100, color: "red", side: "right"},
+                    {x: 650, y: 100, w: 25, h: 100, color: "red", side: "right"},
+                    {x: 650, y: 200, w: 25, h: 100, color: "green", side: "right"},
+                    {x: 650, y: 300, w: 25, h: 100, color: "red", side: "right"},
+                    {x: 650, y: 400, w: 25, h: 100, color: "green", side: "right"},
+                    {x: 650, y: 500, w: 25, h: 100, color: "red", side: "right"},
+                    {x: 650, y: 600, w: 25, h: 100, color: "green", side: "right"},
                 ]
             };
             balls = []
@@ -388,6 +457,9 @@
         var roadblocks = []
         var bonuses = []
         var score = 0;
+        var turning = null
+        var leftSideLineX = 125
+        var rightSideLineX = 650
 
         start_game();
 
