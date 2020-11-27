@@ -119,10 +119,10 @@
             var code = e.keyCode;
             switch (code) {
                 case 37:
-                    // moveCar(car, -20, 0);
+                    moveCar(car, -20, 0);
                     break; //Left key
                 case 39:
-                    // moveCar(car, 20, 0);
+                    moveCar(car, 20, 0);
                     break; //Right key
                 case 38:
                     // moveCar(car, 0, -20);
@@ -443,7 +443,7 @@
             roadblocks = []
             bonuses = []
             score = 0;
-            speed = 10;
+            speed = 8;
         }
         
         function onDeviceReady() {
@@ -452,11 +452,12 @@
         
         function onAccelerate(acceleration) {                
             
-            // console.log('Acceleration Absolute: ' + acceleration.absolute)
-            // console.log('Acceleration alpha: ' + acceleration.alpha)
-            // console.log('Acceleration beta: ' + acceleration.beta)
+            // // console.log('Acceleration Absolute: ' + acceleration)
+            // // console.log('Acceleration Absolute: ' + acceleration.absolute)
+            // // console.log('Acceleration alpha: ' + acceleration.alpha)
+            // // console.log('Acceleration beta: ' + acceleration.beta)
             // console.log('Acceleration gamma: ' + acceleration.gamma)
-            
+            if (acceleration.gamma == null) return;
             xChange = acceleration.gamma
             
             if ((acceleration.beta*-1)+30 > 10) {
