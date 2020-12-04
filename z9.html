@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html>
 <head>
+    <meta name="viewport" content="width=device-width">
+    <!-- <meta name="viewport" content="initial-scale=1.0"> -->
+
+    
     <style>
+        * {
+            touch-action: manipulation;
+        }
         button {
-            width: 250px;
+            width: 32%;
             height: 100px;
-            margin-left: 10px;
+            /* margin-left: 10px; */
         }
     </style>
 
@@ -13,18 +19,32 @@
 
 
 <body>
-
-    <canvas id="myCanvas" width="800" height="600" style="border:1px solid #d3d3d3;">
-        Your browser does not support the HTML canvas tag.</canvas>
-
+    
+    <canvas id="myCanvas" width="800" height="600" >Your browser does not support the HTML canvas tag.</canvas>
+    
     <br/>
-    <div>
+    <div style="width: 100%;">
         <button onClick="handleClick({keyCode: 37})">Left</button>
         <button onClick="handleClick({keyCode: 32})">Shoot</button>
         <button onClick="handleClick({keyCode: 39})">Right</button>
+        <button id="request">Request orientation permission</button>
     </div>
     
     <script>
+        function permission () {
+            if (typeof(DeviceOrientationEvent) !== "undefined" && typeof(DeviceOrientationEvent.requestPermission) === "function" ) {
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                    if (response == "granted") {
+                        window.addEventListener("deviceorientation", onAccelerate, true);
+                    }
+                })
+                    .catch(console.error)
+            } else {
+                window.addEventListener("deviceorientation", onAccelerate, true);
+            }
+        }
+
         function drawBox(x, y, w, h, color) {
             ctx.beginPath();
             ctx.fillStyle = color;
@@ -470,6 +490,22 @@
         function onError(error) {
             alert('error');
         }
+
+        function requestOrientationPermission(){
+            DeviceOrientationEvent.requestPermission()
+            .then(response => {
+                if (response == 'granted') {
+                    window.addEventListener('deviceorientation', (e) => {
+                        // do something with e
+                    })
+                }
+            })
+            .catch(console.error)
+        }
+        
+        const btn = document.getElementById("request");
+        btn.addEventListener("click", permission);
+
         
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
