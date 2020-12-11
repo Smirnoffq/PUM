@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <!-- <meta name="viewport" content="initial-scale=1.0"> -->
+
+    
+    <style>
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+        }
+        button {
+            width: 100vw;
+            height: 100px;
+            /* margin-left: 10px; */
+        }
+
+        #myCanvas {
+            height: 70vh;
+            width: 100vw;
+        }
+        #request {
+            width: 100vw;
+        }
+    </style>
+
+</head>
+
+
+<body>
+    
+    <canvas id="myCanvas" height="600" >Your browser does not support the HTML canvas tag.</canvas>
+    
+    <br/>
+    <div style="width: 100%;">
+        <!-- <button onClick="handleClick({keyCode: 37})">Left</button>
+        <button onClick="handleClick({keyCode: 32})">Shoot</button>
+        -->
+        <button id="request">Request orientation permission</button>
+        <button id="start">Start game</button>
+    </div>
+    
+    <script>
+        function permission () {
+            if (typeof(DeviceOrientationEvent) !== "undefined" && typeof(DeviceOrientationEvent.requestPermission) === "function" ) {
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                    if (response == "granted") {
+                        window.addEventListener("deviceorientation", onAccelerate, true);
+                    }
+                })
+                    .catch(console.error)
+            } else {
+                window.addEventListener("deviceorientation", onAccelerate, true);
+            }
+        }
+
+        function drawBox(x, y, w, h, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.rect(x, y - h, w, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBall(x, y, size, noidea, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.arc(x, y, size, noidea, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawScore(score, x, y) {
+            ctx.beginPath();
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "left";
+            ctx.fillText("Score: " + score.toString(), x, y);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBalls(balls) {
+            for (ball of balls) {
+                drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
+            }
+        }
+
+        function drawGameOver() {
+            drawBox(0,600,800,600, "black")
+
+            ctx.beginPath();
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "left";
+            ctx.fillText("Game over", 300, 300);
+            ctx.fillText("Your score: " + score, 290, 340);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+
+        function drawAnimation() {
+            if (game_over == true) {
+                drawGameOver()
+                return;
+            }
+
+            randomTurning()
+            moveCar(car,xChange,0)
+            moveBalls()
+            moveLines()
+            moveRoad()
+            moveRoadblocks()
+            moveBonuses()
+            
+
+            addRoadblock()
+            addBonus()
+
+            handleCollisions()
+
+            ctx.clearRect(0, 0, 800, 600);
+
+            drawRoad(road)
+            drawRoadblocks(roadblocks)
+            drawBonuses(bonuses)
+            drawCar(car)
+            drawBalls(balls)
+            drawScore(score, 10, 30)
+        }
+
+        function isColliding(rect1, rect2) {
+            return (rect1.x < rect2.x + rect2.w &&
+                    rect1.x + rect1.w > rect2.x &&
+                    rect1.y < rect2.y + rect2.h &&
+                    rect1.y + rect1.h > rect2.y)
+        }
+
+        function isCollidingBall(ball, target) {
+            return (ball.x > target.x && ball.x < target.x + target.w && ball.y > target.y && ball.y < target.y + target.h)
+        }
+
+        function handleCollisions() {
+            for (part of car) {
+                for (target of roadblocks) {
+                    if (isColliding(part, target)) {
+                        game_over = true;
+                        break;
+                    }
+                }
+
+                for (bonus of bonuses) {
+                    if (isColliding(part, bonus)) {
+                        bonusIndex = bonuses.indexOf(bonus)
+                        bonuses.splice(bonusIndex, 1)
+                        score += 10
+                        break;
+                    }
+                }
+            }
+
+            for (ball of balls) {
+                for (target of roadblocks) {
+                    if (isCollidingBall(ball, target)) {
+                        targetIndex = roadblocks.indexOf(target)
+                        ballIndex = balls.indexOf(ball)
+                        roadblocks.splice(targetIndex, 1)
+                        balls.splice(ballIndex, 1)
+                        score += 1
+                        break;
+                    }
+                }
+            }
+        }
+
+        function start_game() {
+            game_over = false;
+            car = [
+                {x: getHeightValue(90), y: getWidthValue(50), w: getWidthValue(10), h:getHeightValue(5), color: "blue"},
+            ];
+            road = {
+                
+            };
+            balls = []
+
+            roadblocks = []
+            bonuses = []
+            score = 0;
+            speed = 8;
+        }
+        
+        function onDeviceReady() {
+            navigator.accelerometer.getCurrentAcceleration(onAccelerate, onError);
+        }
+        
+        function onAccelerate(acceleration) {                
+            
+            // // console.log('Acceleration Absolute: ' + acceleration)
+            // // console.log('Acceleration Absolute: ' + acceleration.absolute)
+            // // console.log('Acceleration alpha: ' + acceleration.alpha)
+            // // console.log('Acceleration beta: ' + acceleration.beta)
+            // console.log('Acceleration gamma: ' + acceleration.gamma)
+            if (acceleration.gamma == null) return;
+            xChange = acceleration.gamma
+            
+            if ((acceleration.beta*-1)+30 > 10) {
+                speed = (acceleration.beta*-1)+30
+            } else {
+                speed = 10
+            }
+        }
+
+        function getWidthValue(widthPecentage) {
+            return screenWidth * (widthPecentage * 0.01)
+        }
+
+        function getHeightValue(heightPecentage) {
+            return screenHeight * (heightPecentage * 0.01)
+        }
+        
+        function onError(error) {
+            alert('error');
+        }
+        
+        const btn = document.getElementById("request");
+        btn.addEventListener("click", permission);
+
+        
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        
+        window.addEventListener('keydown', handleClick, false);
+        window.addEventListener("deviceorientation", onAccelerate, true);
+
+        var xChange = 0;
+        var screenWidth = window.screen.width;
+        var screenHeight = window.screen.height;;
+        // var yChange = 30;
+        var game_over = false;
+        var car = [];
+        var road = {
+            bg: [],
+            middleLines: [],
+            sideLines: []
+        };
+        var roadblocks = []
+        var bonuses = []
+        var score = 0;
+        var turning = null
+        var leftSideLineX = 125
+        var rightSideLineX = 650
+
+        start_game();
+
+        var interval = null
+        interval = setInterval(drawAnimation, 20);
+    </script>
+
+</body>
+
+</html>
