@@ -30,7 +30,7 @@
 
 <body>
     
-    <canvas id="myCanvas" height="600" >Your browser does not support the HTML canvas tag.</canvas>
+    <canvas id="myCanvas">Your browser does not support the HTML canvas tag.</canvas>
     
     <br/>
     <div style="width: 100%;">
@@ -78,7 +78,7 @@
 
         function drawScore(score, x, y) {
             ctx.beginPath();
-            ctx.font = "30px Arial";
+            ctx.font = getWidthValue(2) + "px Arial";
             ctx.fillStyle = "black";
             ctx.textAlign = "left";
             ctx.fillText("Score: " + score.toString(), x, y);
@@ -90,6 +90,13 @@
             for (ball of balls) {
                 drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
             }
+        }
+
+        function drawPaddle(paddle) {
+            console.log(paddle)
+            for (p of paddle) {
+                drawBox(p.x, p.y, p.w, p.h, p.color)
+            } 
         }
 
         function drawGameOver() {
@@ -111,29 +118,14 @@
                 drawGameOver()
                 return;
             }
-
-            randomTurning()
-            moveCar(car,xChange,0)
-            moveBalls()
-            moveLines()
-            moveRoad()
-            moveRoadblocks()
-            moveBonuses()
-            
-
-            addRoadblock()
-            addBonus()
-
+           
             handleCollisions()
 
-            ctx.clearRect(0, 0, 800, 600);
+            ctx.clearRect(0, 0, getWidthValue(100), getHeightValue(100));
 
-            drawRoad(road)
-            drawRoadblocks(roadblocks)
-            drawBonuses(bonuses)
-            drawCar(car)
+            drawPaddle(paddle)
             drawBalls(balls)
-            drawScore(score, 10, 30)
+            drawScore(score, getWidthValue(1), getHeightValue(5))
         }
 
         function isColliding(rect1, rect2) {
@@ -148,7 +140,7 @@
         }
 
         function handleCollisions() {
-            for (part of car) {
+            for (part of paddle) {
                 for (target of roadblocks) {
                     if (isColliding(part, target)) {
                         game_over = true;
@@ -182,8 +174,8 @@
 
         function start_game() {
             game_over = false;
-            car = [
-                {x: getHeightValue(90), y: getWidthValue(50), w: getWidthValue(10), h:getHeightValue(5), color: "blue"},
+            paddle = [
+                {x: getWidthValue(50), y: getHeightValue(90), w: getWidthValue(20), h:getHeightValue(5), color: "blue"},
             ];
             road = {
                 
@@ -236,15 +228,15 @@
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
         
-        window.addEventListener('keydown', handleClick, false);
+        // window.addEventListener('keydown', handleClick, false);
         window.addEventListener("deviceorientation", onAccelerate, true);
 
         var xChange = 0;
-        var screenWidth = window.screen.width;
-        var screenHeight = window.screen.height;;
+        var screenWidth = document.getElementById("myCanvas").width;
+        var screenHeight = document.getElementById("myCanvas").height;
         // var yChange = 30;
         var game_over = false;
-        var car = [];
+        var paddle = [];
         var road = {
             bg: [],
             middleLines: [],
