@@ -151,10 +151,12 @@
             change_y = true;
             if (!(ball.x+ball_change.dx > getWidthValue(2) && ball.x+ball_change.dx < getWidthValue(98))) {
                 change_x = false
+                change_direction(ball, true)
             }
 
             if (!(ball.y+ball_change.dy > getHeightValue(0))) {
                 change_y = false
+                change_direction(ball, true)
             }
 
             if (change_x) {
@@ -195,11 +197,47 @@
             return (ball.x > target.x && ball.x < target.x + target.w && ball.y > target.y && ball.y < target.y + target.h)
         }
 
+        function change_direction(ball, is_wall) {
+            if (is_wall) {
+                switch(ball_change) {
+                    case DIRECTION.UP_LEFT:
+                        ball_change = DIRECTION.UP_RIGHT;
+                        break;
+                    case DIRECTION.UP_RIGHT:
+                        ball_change = DIRECTION.UP_LEFT;
+                        break;
+                    case DIRECTION.DOWN_RIGHT:
+                        ball_change = DIRECTION.DOWN_LEFT;
+                        break;
+                    case DIRECTION.DOWN_LEFT:
+                        ball_change = DIRECTION.DOWN_RIGHT;
+                        break;
+                }
+            } else {
+                switch(ball_change) {
+                    case DIRECTION.UP_LEFT:
+                        ball_change = DIRECTION.DOWN_LEFT;
+                        break;
+                    case DIRECTION.UP_RIGHT:
+                        ball_change = DIRECTION.DOWN_RIGHT;
+                        break;
+                    case DIRECTION.DOWN_RIGHT:
+                        ball_change = DIRECTION.UP_RIGHT;
+                        break;
+                    case DIRECTION.DOWN_LEFT:
+                        ball_change = DIRECTION.UP_LEFT;
+                        break;
+                }
+            }
+            
+
+        }
+
         function handleCollisions() {
             for (part of balls) {
                 for (target of blocks) {
                     if (isCollidingBall(part, target)) {
-                        ball_change.dy = (ball_change.dy*-1) 
+                        change_direction(ball, false)
                         blockIndex = blocks.indexOf(target)
                         blocks.splice(blockIndex, 1)
                         score += 10
@@ -209,7 +247,7 @@
                 
                 for (target of paddle) {
                     if (isCollidingBall(part, target)) {
-                        ball_change.dy = (ball_change.dy*-1) 
+                        change_direction(ball, false)
                         break;
                     }
                 }
@@ -265,9 +303,7 @@
 
             score = 0;
             speed = 8;
-            ball_change = {
-                dx: 0, dy: -5
-            }
+            ball_change = DIRECTION.UP_LEFT
 
             interval = null
             interval = setInterval(drawAnimation, 20);
@@ -312,6 +348,14 @@
         var paddle = [];
         var blocks = [];
         var score = 0;
+
+        var DIRECTION = {
+            UP_LEFT: {dx:-5,dy:-5},
+            UP_RIGHT: {dx:5,dy:-5},
+            DOWN_LEFT: {dx:-5,dy:5},
+            DOWN_RIGHT: {dx:5,dy:5},
+        }
+
         var ball_change = {}
 
         var interval = null
