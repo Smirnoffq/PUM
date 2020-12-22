@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <head>
     <meta name="viewport" content="width=device-width">
+
     <!-- <meta name="viewport" content="initial-scale=1.0"> -->
 
     
@@ -15,13 +16,22 @@
             height: 100px;
             /* margin-left: 10px; */
         }
-
+ 
         #myCanvas {
-            height: 70vh;
-            width: 100vw;
-        }
+            height: 100%;
+            width: 100%;
+            -webkit-box-shadow:inset 0px 0px 0px 2px #000;
+            -moz-box-shadow:inset 0px 0px 0px 2px #000;
+            box-shadow:inset 0px 0px 0px 2px #000;
+        } 
+
         #request {
             width: 100vw;
+        }
+
+        #canvas-wrapper { 
+            width: 100vw;
+            height: 70vh;
         }
     </style>
 
@@ -30,16 +40,20 @@
 
 <body>
     
-    <canvas id="myCanvas">Your browser does not support the HTML canvas tag.</canvas>
-    
+    <div id="canvas-wrapper">
+        <canvas id="myCanvas" height="420">Your browser does not support the HTML canvas tag.</canvas>
+    </div>
+
     <br/>
     <div style="width: 100%;">
         <!-- <button onClick="handleClick({keyCode: 37})">Left</button>
         <button onClick="handleClick({keyCode: 32})">Shoot</button>
         -->
-        <button id="request">Request orientation permission</button>
-        <button id="start">Start game</button>
+        <!-- <button id="request">Request orientation permission</button> -->
+        <button id="request">Start game</button>
     </div>
+
+    
     
     <script>
         function permission () {
@@ -54,6 +68,8 @@
             } else {
                 window.addEventListener("deviceorientation", onAccelerate, true);
             }
+
+            start_game()
         }
 
         function drawBox(x, y, w, h, color) {
@@ -91,9 +107,14 @@
                 drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
             }
         }
+        
+        function drawBlocks(blocks) {
+            for (block of blocks) {
+                drawBox(block.x, block.y, block.w, block.h, block.color)
+            }
+        }
 
         function drawPaddle(paddle) {
-            console.log(paddle)
             for (p of paddle) {
                 drawBox(p.x, p.y, p.w, p.h, p.color)
             } 
@@ -112,6 +133,38 @@
             ctx.closePath();
         }
 
+        function movePaddle(p, x, yChange) {
+            change_x = true
+            if (!(p[0].x+x > getWidthValue(2) && p[0].x+x < getWidthValue(80))) {
+                change_x = false
+            }
+
+            if (change_x) {
+                p[0].x += x;
+            }
+            
+            p[0].y += yChange;
+        }
+
+        function moveBall(ball, ball_change) {
+            change_x = true;
+            change_y = true;
+            if (!(ball.x+ball_change.dx > getWidthValue(2) && ball.x+ball_change.dx < getWidthValue(98))) {
+                change_x = false
+            }
+
+            if (!(ball.y+ball_change.dy > getHeightValue(0))) {
+                change_y = false
+            }
+
+            if (change_x) {
+                ball.x += ball_change.dx;
+            }
+
+            if (change_y) {
+                ball.y += ball_change.dy;
+            }
+        }
 
         function drawAnimation() {
             if (game_over == true) {
@@ -119,13 +172,16 @@
                 return;
             }
            
+            movePaddle(paddle,xChange,0)
+            moveBall(balls[0],ball_change)
             handleCollisions()
 
             ctx.clearRect(0, 0, getWidthValue(100), getHeightValue(100));
 
             drawPaddle(paddle)
             drawBalls(balls)
-            drawScore(score, getWidthValue(1), getHeightValue(5))
+            drawBlocks(blocks)
+            drawScore(score, getWidthValue(2), getHeightValue(98))
         }
 
         function isColliding(rect1, rect2) {
@@ -140,73 +196,90 @@
         }
 
         function handleCollisions() {
-            for (part of paddle) {
-                for (target of roadblocks) {
-                    if (isColliding(part, target)) {
-                        game_over = true;
-                        break;
-                    }
-                }
-
-                for (bonus of bonuses) {
-                    if (isColliding(part, bonus)) {
-                        bonusIndex = bonuses.indexOf(bonus)
-                        bonuses.splice(bonusIndex, 1)
+            for (part of balls) {
+                for (target of blocks) {
+                    if (isCollidingBall(part, target)) {
+                        ball_change.dy = (ball_change.dy*-1) 
+                        blockIndex = blocks.indexOf(target)
+                        blocks.splice(blockIndex, 1)
                         score += 10
                         break;
                     }
-                }
-            }
-
-            for (ball of balls) {
-                for (target of roadblocks) {
-                    if (isCollidingBall(ball, target)) {
-                        targetIndex = roadblocks.indexOf(target)
-                        ballIndex = balls.indexOf(ball)
-                        roadblocks.splice(targetIndex, 1)
-                        balls.splice(ballIndex, 1)
-                        score += 1
+                }  
+                
+                for (target of paddle) {
+                    if (isCollidingBall(part, target)) {
+                        ball_change.dy = (ball_change.dy*-1) 
                         break;
                     }
                 }
             }
+
+            //     for (bonus of bonuses) {
+            //         if (isColliding(part, bonus)) {
+            //             bonusIndex = bonuses.indexOf(bonus)
+            //             bonuses.splice(bonusIndex, 1)
+            //             score += 10
+            //             break;
+            //         }
+            //     }
+            // }
+
+            // for (ball of balls) {
+            //     for (target of roadblocks) {
+            //         if (isCollidingBall(ball, target)) {
+            //             targetIndex = roadblocks.indexOf(target)
+            //             ballIndex = balls.indexOf(ball)
+            //             roadblocks.splice(targetIndex, 1)
+            //             balls.splice(ballIndex, 1)
+            //             score += 1
+            //             break;
+            //         }
+            //     }
+            // }
         }
 
         function start_game() {
             game_over = false;
-            paddle = [
-                {x: getWidthValue(50), y: getHeightValue(90), w: getWidthValue(20), h:getHeightValue(5), color: "blue"},
-            ];
-            road = {
-                
-            };
-            balls = []
 
-            roadblocks = []
-            bonuses = []
+
+            paddle = [
+                {x: getWidthValue(40), y: getHeightValue(95), w: getWidthValue(20), h:getHeightValue(5), color: "black"},
+            ];
+
+            balls = [
+                {x: getWidthValue(50), y: getHeightValue(85), size: getWidthValue(1.5),noidea:0, color: "red"},
+            ]
+
+            blocks = []
+
+            for (var i = 0; i < 4; i++) {
+                for (var j = 0; j < 6; j++) {
+                    tmp_color = "orange"
+                    if (((j+1) % 2 == 0) && (i % 2 == 0)) {
+                        tmp_color = "yellow"
+                    }
+                    blocks.push({x: getWidthValue(2+(j*20)), y: getHeightValue(10+(i*10)), w: getWidthValue(15), h:getHeightValue(5), color: tmp_color})
+                }
+            }
+
             score = 0;
             speed = 8;
+            ball_change = {
+                dx: 0, dy: -5
+            }
+
+            interval = null
+            interval = setInterval(drawAnimation, 20);
         }
         
         function onDeviceReady() {
             navigator.accelerometer.getCurrentAcceleration(onAccelerate, onError);
         }
         
-        function onAccelerate(acceleration) {                
-            
-            // // console.log('Acceleration Absolute: ' + acceleration)
-            // // console.log('Acceleration Absolute: ' + acceleration.absolute)
-            // // console.log('Acceleration alpha: ' + acceleration.alpha)
-            // // console.log('Acceleration beta: ' + acceleration.beta)
-            // console.log('Acceleration gamma: ' + acceleration.gamma)
+        function onAccelerate(acceleration) {       
             if (acceleration.gamma == null) return;
             xChange = acceleration.gamma
-            
-            if ((acceleration.beta*-1)+30 > 10) {
-                speed = (acceleration.beta*-1)+30
-            } else {
-                speed = 10
-            }
         }
 
         function getWidthValue(widthPecentage) {
@@ -223,37 +296,29 @@
         
         const btn = document.getElementById("request");
         btn.addEventListener("click", permission);
-
         
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
-        
-        // window.addEventListener('keydown', handleClick, false);
+        var canvasWrapperRect = document.getElementById('canvas-wrapper').getBoundingClientRect();
+        c.width = canvasWrapperRect.width;
+
         window.addEventListener("deviceorientation", onAccelerate, true);
 
         var xChange = 0;
         var screenWidth = document.getElementById("myCanvas").width;
         var screenHeight = document.getElementById("myCanvas").height;
-        // var yChange = 30;
+
         var game_over = false;
         var paddle = [];
-        var road = {
-            bg: [],
-            middleLines: [],
-            sideLines: []
-        };
-        var roadblocks = []
-        var bonuses = []
+        var blocks = [];
         var score = 0;
-        var turning = null
-        var leftSideLineX = 125
-        var rightSideLineX = 650
-
-        start_game();
+        var ball_change = {}
 
         var interval = null
-        interval = setInterval(drawAnimation, 20);
+
     </script>
+
+    
 
 </body>
 
