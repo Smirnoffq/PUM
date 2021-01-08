@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width">
+
+    <!-- <meta name="viewport" content="initial-scale=1.0"> -->
+
+    
+    <style>
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+        }
+        button {
+            width: 100vw;
+            height: 100px;
+            /* margin-left: 10px; */
+        }
+ 
+        #myCanvas {
+            height: 100%;
+            width: 100%;
+            -webkit-box-shadow:inset 0px 0px 0px 2px #000;
+            -moz-box-shadow:inset 0px 0px 0px 2px #000;
+            box-shadow:inset 0px 0px 0px 2px #000;
+        } 
+
+        #request {
+            width: 100vw;
+        }
+
+        #canvas-wrapper { 
+            width: 100vw;
+            height: 70vh;
+        }
+    </style>
+
+</head>
+
+
+<body>
+    
+    <div id="canvas-wrapper">
+        <canvas id="myCanvas" height="420">Your browser does not support the HTML canvas tag.</canvas>
+    </div>
+
+    <br/>
+    <div style="width: 100%;">
+        <!-- <button onClick="handleClick({keyCode: 37})">Left</button>
+        <button onClick="handleClick({keyCode: 32})">Shoot</button>
+        -->
+        <!-- <button id="request">Request orientation permission</button> -->
+        <button id="request">Start game</button>
+    </div>
+
+    
+    
+    <script>
+        function permission () {
+            if (typeof(DeviceOrientationEvent) !== "undefined" && typeof(DeviceOrientationEvent.requestPermission) === "function" ) {
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                    if (response == "granted") {
+                        window.addEventListener("deviceorientation", onAccelerate, true);
+                    }
+                })
+                    .catch(console.error)
+            } else {
+                window.addEventListener("deviceorientation", onAccelerate, true);
+            }
+
+            start_game()
+        }
+
+        function drawBox(x, y, w, h, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.rect(x, y - h, w, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBall(x, y, size, noidea, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.arc(x, y, size, noidea, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawScore(score, x, y) {
+            ctx.beginPath();
+            ctx.font = getWidthValue(2) + "px Arial";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "left";
+            ctx.fillText("Score: " + score.toString(), x, y);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawBalls(balls) {
+            for (ball of balls) {
+                drawBall(ball.x, ball.y, ball.size, ball.noidea, ball.color)
+            }
+        }
+        
+        function drawwalls(walls) {
+            for (block of walls) {
+                drawBox(block.x, block.y, block.w, block.h, block.color)
+            }
+        }
+
+        function drawPaddle(paddle) {
+            for (p of paddle) {
+                drawBox(p.x, p.y, p.w, p.h, p.color)
+            } 
+        }
+
+        function drawGameOver() {
+            drawBox(0,600,800,600, "black")
+
+            ctx.beginPath();
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "left";
+            ctx.fillText("Game over", 300, 300);
+            ctx.fillText("Your score: " + score, 290, 340);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function movePaddle(p, x, y) {
+            change_x = true
+            change_y = true
+            if (!(p[0].x+x > getWidthValue(2) && p[0].x+x < getWidthValue(80))) {
+                change_x = false
+            }
+
+            if (!(p[0].y+y > getHeightValue(5) && p[0].y+y < getHeightValue(95))) {
+                change_y = false
+            }
+
+            if (change_x) {
+                p[0].x += x;
+            }
+            if (change_y) {
+                p[0].y += y;
+            }
+            
+        }
+
+        function drawAnimation() {
+            if (game_over == true) {
+                drawGameOver()
+                return;
+            }
+           
+            movePaddle(paddle,xChange,yChange)
+            handleCollisions()
+
+            ctx.clearRect(0, 0, getWidthValue(100), getHeightValue(100));
+
+            drawPaddle(paddle)
+            drawwalls(walls)
+            drawScore(score, getWidthValue(2), getHeightValue(98))
+        }
+
+        function isColliding(rect1, rect2) {
+            return (rect1.x < rect2.x + rect2.w &&
+                    rect1.x + rect1.w > rect2.x &&
+                    rect1.y < rect2.y + rect2.h &&
+                    rect1.y + rect1.h > rect2.y)
+        }
+
+        function isCollidingBall(ball, target) {
+            return (ball.x > target.x && ball.x < target.x + target.w && ball.y > target.y && ball.y < target.y + target.h)
+        }
+
+        function handleCollisions() {
+
+        }
+
+        function start_game() {
+            game_over = false;
+
+
+            paddle = [
+                {x: getWidthValue(40), y: getHeightValue(95), w: getWidthValue(20), h:getHeightValue(5), color: "black"},
+            ];
+
+            walls = []
+
+            for (var i = 0; i < 4; i++) {
+                for (var j = 0; j < 6; j++) {
+                    tmp_color = "blue"
+                    walls.push({x: getWidthValue(2+(j*20)), y: getHeightValue(10+(i*10)), w: getWidthValue(15), h:getHeightValue(5), color: tmp_color})
+                }
+            }
+
+            score = 0;
+            speed = 8;
+            // ball_change = DIRECTION.UP_LEFT
+
+            interval = null
+            interval = setInterval(drawAnimation, 20);
+        }
+        
+        function onDeviceReady() {
+            navigator.accelerometer.getCurrentAcceleration(onAccelerate, onError);
+        }
+        
+        function onAccelerate(acceleration) {       
+            if (acceleration.gamma == null) return;
+            
+
+            if(window.innerHeight > window.innerWidth){
+                xChange = acceleration.gamma
+                yChange = acceleration.beta
+                speed = 1
+            } else {
+                yChange = acceleration.gamma / 10
+                xChange = acceleration.beta / 10
+                speed = 1
+            }
+        }
+
+        function getWidthValue(widthPecentage) {
+            return screenWidth * (widthPecentage * 0.01)
+        }
+
+        function getHeightValue(heightPecentage) {
+            return screenHeight * (heightPecentage * 0.01)
+        }
+        
+        function onError(error) {
+            alert('error');
+        }
+        
+        const btn = document.getElementById("request");
+        btn.addEventListener("click", permission);
+        
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        var canvasWrapperRect = document.getElementById('canvas-wrapper').getBoundingClientRect();
+        c.width = canvasWrapperRect.width;
+
+        window.addEventListener("deviceorientation", onAccelerate, true);
+
+        var xChange = 0;
+        var yChange = 0;
+        var screenWidth = document.getElementById("myCanvas").width;
+        var screenHeight = document.getElementById("myCanvas").height;
+
+        var game_over = false;
+        var paddle = [];
+        var walls = [];
+        var walls = [];
+        var score = 0;
+
+
+        var ball_change = {}
+
+        var interval = null
+
+    </script>
+
+    
+
+</body>
+
+</html>
