@@ -116,7 +116,7 @@
 
         function drawPaddle(paddle) {
             for (p of paddle) {
-                drawBox(p.x, p.y, p.w, p.h, p.color)
+                drawBall(p.x, p.y, p.size, p.noidea, p.color)
             } 
         }
 
@@ -136,18 +136,16 @@
         function movePaddle(p, x, y) {
             change_x = true
             change_y = true
-            if (!(p[0].x+x > getWidthValue(2) && p[0].x+x < getWidthValue(80))) {
-                change_x = false
-            }
+            // if (!(p[0].x+x > getWidthValue(2) && p[0].x+x < getWidthValue(80))) {
+            //     change_x = false
+            // }
 
-            if (!(p[0].y+y > getHeightValue(5) && p[0].y+y < getHeightValue(95))) {
-                change_y = false
-            }
+            // if (!(p[0].y+y > getHeightValue(5) && p[0].y+y < getHeightValue(95))) {
+            //     change_y = false
+            // }
 
-            if (change_x) {
+            if (!handleCollisions(x, y)) {
                 p[0].x += x;
-            }
-            if (change_y) {
                 p[0].y += y;
             }
             
@@ -160,7 +158,7 @@
             }
            
             movePaddle(paddle,xChange,yChange)
-            handleCollisions()
+            // handleCollisions()
 
             ctx.clearRect(0, 0, getWidthValue(100), getHeightValue(100));
 
@@ -180,8 +178,17 @@
             return (ball.x > target.x && ball.x < target.x + target.w && ball.y > target.y && ball.y < target.y + target.h)
         }
 
-        function handleCollisions() {
-
+        function handleCollisions(x, y) {
+            for (target of paddle) {
+                tmp = target;
+                tmp.x += x;
+                tmp.y += y;
+                for (part of walls) {
+                    if (isCollidingBall(tmp, part)) {
+                        return true;
+                    }
+                }
+            }
         }
 
         function start_game() {
@@ -189,17 +196,31 @@
 
 
             paddle = [
-                {x: getWidthValue(40), y: getHeightValue(95), w: getWidthValue(20), h:getHeightValue(5), color: "black"},
+                {x: getWidthValue(40), y: getHeightValue(95), size: getWidthValue(2), noidea:0, color: "black"},
             ];
 
             walls = []
+            tmp_color = "blue"
 
-            for (var i = 0; i < 4; i++) {
-                for (var j = 0; j < 6; j++) {
-                    tmp_color = "blue"
-                    walls.push({x: getWidthValue(2+(j*20)), y: getHeightValue(10+(i*10)), w: getWidthValue(15), h:getHeightValue(5), color: tmp_color})
-                }
-            }
+            // for (var i = 0; i < 4; i++) {
+            //     for (var j = 0; j < 6; j++) {
+            //         tmp_color = "blue"
+            //         walls.push({x: getWidthValue(2+(j*20)), y: getHeightValue(10+(i*10)), w: getWidthValue(15), h:getHeightValue(5), color: tmp_color})
+            //     }
+            // }
+            
+            // walls
+            walls.push({x: getWidthValue(0), y: getHeightValue(1), w: getWidthValue(100), h:getHeightValue(1), color: tmp_color})
+            walls.push({x: getWidthValue(0), y: getHeightValue(100), w: getWidthValue(100), h:getHeightValue(1), color: tmp_color})
+            walls.push({x: getWidthValue(0), y: getHeightValue(0), w: getWidthValue(1), h:getHeightValue(-100), color: tmp_color})
+            walls.push({x: getWidthValue(99), y: getHeightValue(0), w: getWidthValue(1), h:getHeightValue(-100), color: tmp_color})
+
+            walls.push({x: getWidthValue(0), y: getHeightValue(90), w: getWidthValue(70), h:getHeightValue(5), color: tmp_color})
+            walls.push({x: getWidthValue(30), y: getHeightValue(75), w: getWidthValue(70), h:getHeightValue(5), color: tmp_color})
+            walls.push({x: getWidthValue(0), y: getHeightValue(60), w: getWidthValue(70), h:getHeightValue(5), color: tmp_color})
+            walls.push({x: getWidthValue(30), y: getHeightValue(45), w: getWidthValue(70), h:getHeightValue(5), color: tmp_color})
+            walls.push({x: getWidthValue(0), y: getHeightValue(30), w: getWidthValue(70), h:getHeightValue(5), color: tmp_color})
+            walls.push({x: getWidthValue(30), y: getHeightValue(15), w: getWidthValue(70), h:getHeightValue(5), color: tmp_color})
 
             score = 0;
             speed = 8;
@@ -222,8 +243,8 @@
                 yChange = acceleration.beta
                 speed = 1
             } else {
-                yChange = acceleration.gamma / 10
-                xChange = acceleration.beta / 10
+                yChange = acceleration.gamma * (-1)
+                xChange = acceleration.beta 
                 speed = 1
             }
         }
